@@ -1,4 +1,19 @@
 export default defineNuxtRouteMiddleware(async (to) => {
+  // 0. If redirected from OAuth with session token:
+  const tokenFromQuery = to.query.token as string | undefined
+  if (tokenFromQuery) {
+    const sessionCookie = useCookie('diffvera_session', {
+      path: '/',
+      maxAge: 604800,
+      sameSite: 'lax',
+      secure: true
+    })
+    sessionCookie.value = tokenFromQuery
+    const isAuthenticated = useState<boolean>('isAuthenticated', () => true)
+    isAuthenticated.value = true
+    return navigateTo(to.path, { replace: true })
+  }
+
   const sessionCookie = useCookie('diffvera_session')
   const isAuthenticated = useState<boolean>('isAuthenticated', () => Boolean(sessionCookie.value))
 

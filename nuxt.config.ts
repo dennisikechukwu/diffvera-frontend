@@ -9,7 +9,9 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
   vite: { plugins: [tailwindcss()] },
   routeRules: {
+    '/dashboard': { ssr: false },
     '/dashboard/**': { ssr: false },
+    '/onboarding': { ssr: false },
     '/onboarding/**': { ssr: false },
     '/api/v1/auth/github': { redirect: `${backendUrl}/api/v1/auth/github` },
     '/api/**': { proxy: `${backendUrl}/api/**` }
