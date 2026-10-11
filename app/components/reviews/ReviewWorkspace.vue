@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { HugeiconsIcon } from '@hugeicons/vue'
-import { ArrowLeft01Icon, ArrowUpRight01Icon } from '@hugeicons/core-free-icons'
+import { AiChat01Icon, ArrowLeft01Icon, ArrowUpRight01Icon, Tick02Icon } from '@hugeicons/core-free-icons'
 import type { ChangedFile } from '~/types/workspace'
+import { useAgentPrompt } from '~/composables/useAgentPrompt'
 
 const { snapshot, path, requestReview, busy, isPending, actionError, loading } = useWorkspace()
+const { buildBatchReviewPrompt } = useAgentPrompt()
 const route = useRoute()
 const review = computed(() =>
   snapshot.value?.reviews.find((item) => item.id === route.params.reviewId)
@@ -20,6 +22,36 @@ const scope = ref<'all' | 'file'>('file')
 const selectedFile = ref('')
 const highlightedRange = ref<{ start: number; end: number } | null>(null)
 const sourceError = ref('')
+
+const copyingBatch = ref(false)
+const copiedBatch = ref(false)
+let batchTimer: ReturnType<typeof setTimeout> | undefined
+
+async function copyBatchPrompt() {
+  if (copyingBatch.value || findings.value.length === 0) return
+  copyingBatch.value = true
+  try {
+    const text = buildBatchReviewPrompt(findings.value, {
+      repositoryName: repository.value?.fullName,
+      prNumber: pr.value?.number,
+      prTitle: pr.value?.title
+    })
+    await navigator.clipboard.writeText(text)
+    copiedBatch.value = true
+    if (batchTimer) clearTimeout(batchTimer)
+    batchTimer = setTimeout(() => {
+      copiedBatch.value = false
+    }, 2200)
+  } catch {
+    // clipboard fallback
+  } finally {
+    copyingBatch.value = false
+  }
+}
+
+onBeforeUnmount(() => {
+  if (batchTimer) clearTimeout(batchTimer)
+})
 
 const detailedFiles = ref<ChangedFile[]>([])
 const loadingDiffs = ref(false)
@@ -292,17 +324,42 @@ async function showSource(filePath: string, start: number, end: number) {
             description="Changed code is not available for this review. Return to the pull request to inspect the change."
           />
           <div class="min-w-0">
-            <p role="status" class="mb-3 text-xs text-muted">
-              {{ findings.length }} {{ findings.length === 1 ? 'finding' : 'findings' }} shown
-              <span v-if="scope === 'file'">for the current file</span>
-              <span v-else>across all files</span>
-            </p>
+            <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <p role="status" class="text-xs text-muted">
+                {{ findings.length }} {{ findings.length === 1 ? 'finding' : 'findings' }} shown
+                <span v-if="scope === 'file'">for the current file</span>
+                <span v-else>across all files</span>
+              </p>
+              <button
+                v-if="findings.length > 0"
+                type="button"
+                :disabled="copyingBatch"
+                class="group inline-flex min-h-8 items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium shadow-xs transition-all duration-200 active:scale-[0.98] motion-reduce:transition-none"
+                :class="
+                  copiedBatch
+                    ? 'border-success/30 bg-success-soft text-success'
+                    : 'border-border bg-surface text-ink hover:border-ink hover:bg-paper'
+                "
+                :aria-label="copiedBatch ? 'Copied all findings prompt to clipboard' : 'Copy prompt for all findings'"
+                @click="copyBatchPrompt"
+              >
+                <HugeiconsIcon
+                  :icon="copiedBatch ? Tick02Icon : AiChat01Icon"
+                  :size="13"
+                  class="transition-transform duration-200"
+                  :class="copiedBatch ? 'scale-110 text-success' : 'text-brand'"
+                  aria-hidden="true"
+                />
+                <span>{{ copiedBatch ? 'Copied all for Agent!' : 'Copy all as Agent prompt' }}</span>
+              </button>
+            </div>
             <div v-if="findings.length" class="space-y-5">
               <ReviewsFindingCard
                 v-for="finding in findings"
                 :key="finding.id"
                 :finding="finding"
                 :review-id="review.id"
+                :repository-name="repository?.fullName"
                 @source="showSource"
               />
             </div>
