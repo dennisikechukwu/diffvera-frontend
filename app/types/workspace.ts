@@ -42,6 +42,8 @@ export interface Finding {
   suggestion: string
   correction: string
   ruleId?: string
+  ruleName?: string
+  codeExcerpt?: string
   feedback: Feedback
 }
 export interface Review {
