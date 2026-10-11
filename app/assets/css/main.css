@@ -1,0 +1,139 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: "Geist";
+  src: url("/fonts/geist-latin-wght-normal.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@theme {
+  --font-sans: "Geist", "Arial", sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --color-paper: #faf9f6;
+  --color-surface: #ffffff;
+  --color-ink: #151515;
+  --color-muted: #707070;
+  --color-border: #e4e2e0;
+  --color-brand: #ff6363;
+  --color-brand-dark: #bc303a;
+  --color-brand-display: #d7444c;
+  --color-brand-soft: #fff0ee;
+  --color-success: #237052;
+  --color-success-soft: #edf7f1;
+  --color-progress: #8a5b1a;
+  --color-progress-soft: #fff4e4;
+  --color-accent-slate: #eeeae7;
+  --color-accent-stone: #ece9e3;
+  --color-editor: #202123;
+  --color-editor-muted: #b2b2b6;
+  --color-editor-border: #393a3e;
+  --color-code: #e9e9ed;
+  --color-code-keyword: #c9c5df;
+  --color-code-type: #e7cd90;
+  --color-code-highlight: #333539;
+  --color-severity: #965027;
+  --color-severity-soft: #fbede1;
+  --color-suggestion: #faf5f3;
+  --shadow-preview: 0 12px 44px -20px rgb(21 21 21 / 16%), 0 2px 6px rgb(21 21 21 / 3%);
+  --shadow-dropdown: 0 12px 36px -8px rgb(21 21 21 / 14%), 0 2px 6px rgb(21 21 21 / 5%);
+  --shadow-card: 0 6px 20px -12px rgb(21 21 21 / 12%);
+  --animate-chart-bar: chart-bar 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-hero-drift: hero-drift 6s ease-in-out infinite;
+  --animate-disclosure-in: disclosure-in 220ms ease-out;
+  --animate-hero-enter: hero-enter 540ms cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  @keyframes hero-enter {
+    from { opacity: 0; translate: 0 10px; }
+    to { opacity: 1; translate: 0 0; }
+  }
+
+  @keyframes chart-bar {
+    from { transform: scaleY(0); }
+    to { transform: scaleY(1); }
+  }
+
+  @keyframes hero-drift {
+    0%, 100% { translate: 0 0; }
+    50% { translate: 0 -10px; }
+  }
+
+  @keyframes disclosure-in {
+    from { opacity: 0; translate: 0 4px; }
+    to { opacity: 1; translate: 0 0; }
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-paper font-sans text-ink antialiased;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-4 outline-brand-dark;
+  }
+
+  button:not(:disabled), summary, a {
+    @apply cursor-pointer;
+  }
+
+  button:disabled {
+    @apply cursor-not-allowed;
+  }
+}
+
+@layer utilities {
+  input:not([type="checkbox"]):not([type="radio"]):focus-visible,
+  textarea:focus-visible,
+  button[role="combobox"]:focus-visible {
+    @apply outline-none border-ink;
+  }
+}
+
+/* SaaS Page & Layout Transitions */
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 180ms cubic-bezier(0.16, 1, 0.3, 1),
+              transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
+}
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+.layout-enter-active,
+.layout-leave-active {
+  transition: opacity 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.layout-enter-from,
+.layout-leave-to {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .page-enter-active,
+  .page-leave-active,
+  .layout-enter-active,
+  .layout-leave-active {
+    transition: none !important;
+  }
+  .page-enter-from,
+  .page-leave-to,
+  .layout-enter-from,
+  .layout-leave-to {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
